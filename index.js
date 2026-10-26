@@ -1,75 +1,18 @@
 const express = require('express');
+const produtosRoutes = require('./routes/produtosRoutes');
+
 const app = express();
+
 app.use(express.json());
 
-const produtos = [
-  { id: 1, nome: 'Camiseta', preco: 49.9 },
-  { id: 2, nome: 'Calça', preco: 129.9 },
-  { id: 3, nome: 'Tênis', preco: 299.9 },
-];
-
 app.get('/', (req, res) => {
-  res.send('Bem vindo a minha loja!');
+  res.send('Bem-vindo à minha loja!');
 });
 
-app.post('/produtos', (req, res) => {
-  const { nome, preco } = req.body;
+app.use('/produtos', produtosRoutes);
 
-  if (!nome || !preco) {
-    return res.status(400).json({ erro: 'nome e preco sao obrigatorios' });
-  }
+const PORT = process.env.PORT || 3000;
 
-  const novoproduto = {
-    id: produtos.length + 1,
-    nome,
-    preco,
-  };
-
-  produtos.push(novoproduto);
-  res.status(201).json(novoproduto);
+app.listen(PORT, () => {
+  console.log(`Servidor rodando na porta ${PORT}`);
 });
-
-app.get('/produtos', (req, res) => {
-  res.json(produtos);
-});
-
-app.get('/produtos/:id', (req, res) => {
-  const id = Number(req.params.id);
-  const produto = produtos.find((p) => p.id === id);
-
-  if (!produto) {
-    return res.status(404).json({ erro: 'Produto nâo encontrado' });
-  }
-
-  res.json(produtos);
-});
-
-app.put('/produtos/:id', (req, res) => {
-  const id = Number(req.params.id);
-  const produto = produtos.find(p => p.id === id);
-
-  if (!produto) {
-    return res.status(404).json({ erro: 'produto nao encontrado' });
-  }
-
-  const { nome, preco } = req.body;
-
-  if (nome !== undefined) produto.nome = nome;
-  if (preco !== undefined) produto.preco = preco;
-
-  res.json(produto);
-});
-
-app.delete('/produtos/:id', (req, res) => {
-  const id = Number(req.params.id);
-  const indice = produtos.findIndex(p => p.id === id);
-
-  if (indice === -1) {
-    return res.status(404).json({ erro: 'produto na encontrado' });
-  }
-
-  produtos.splice(indice, 1);
-  res.status(204).send();
-});
-
-app.listen(3000, () => console.log('servidor rodando na porta 3000'));

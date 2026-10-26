@@ -1,10 +1,15 @@
+
 {
-  "name": "node-starter",
-  "private": true,
+  "name": "api-produtos",
+  "version": "1.0.0",
+  "description": "API de gerenciamento de produtos",
+  "main": "index.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "start": "node index.js",
+    "test": "node teste.js"
   },
   "dependencies": {
-    "express": "^5.3.0"
+    "express": "^4.21.2"
   }
 }
+
