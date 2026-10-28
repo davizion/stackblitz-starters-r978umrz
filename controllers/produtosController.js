@@ -1,124 +1,70 @@
+const { lerBanco, salvarBanco }= require('../dados/produtosRepositorio');
 
-const produtos = require('../dados/produtos');
-
-let proximoId = Math.max(0, ...produtos.map(p => p.id)) + 1;
-
-// Listar todos os produtos
-function listar(req, res) {
-  res.json(produtos);
+ async function listar(req, res) {
+  const banco = await lerBanco();
+  res.json(banco.produtos)
 }
 
-// Buscar um produto pelo ID
-function buscarPorId(req, res) {
+async function buscarPorId(req, res) {
+  const banco = await lerBanco();
   const id = Number(req.params.id);
-  const produto = produtos.find(p => p.id === id);
+  const produto = banco.find(p => p.id === id);
 
-  if (!Number.isInteger(id) || id <= 0 || !produto) {
-    return res.status(404).json({
-      erro: 'Produto não encontrado'
-    });
+  if (!produto) {
+ return res.status(404).json({ erro: 'produto nao encontrado' });
   }
+  
 
   res.json(produto);
 }
 
-// Criar um novo produto
-function criar(req, res) {
+
+async function criar(req, res) {
   const { nome, preco } = req.body;
 
-  if (
-    typeof nome !== 'string' ||
-    nome.trim() === '' ||
-    typeof preco !== 'number' ||
-    !Number.isFinite(preco) ||
-    preco < 0
-  ) {
-    return res.status(400).json({
-      erro: 'Nome válido e preço numérico não negativo são obrigatórios'
-    });
+  if (!nome || !preco) {
+      return res.status(400).json({ erro: 'nome e preço sao obrigatorios'});
   }
 
-  const novoProduto = {
-    id: proximoId++,
-    nome: nome.trim(),
-    preco
-  };
+  const banco = await lerBanco();
+  const novoProdutos = { id: banco.proximoId, nome, preco };
+  
+banco.produtos.push(novoProdutos);
+banco.proximoId++;
+await salvarBanco(banco);
 
-  produtos.push(novoProduto);
-
-  res.status(201).json(novoProduto);
+res.status(201).json(novoProduto);
 }
 
-// Atualizar um produto
-function atualizar(req, res) {
+async function atualizar(req, res) {
+  const banco = await lerBanco();
   const id = Number(req.params.id);
-  const produto = produtos.find(p => p.id === id);
+  const produto = banco.produtos.find(p => p.id === id);
 
-  if (!Number.isInteger(id) || id <= 0 || !produto) {
-    return res.status(404).json({
-      erro: 'Produto não encontrado'
-    });
+  if (!produto) {
+    return res.status(404).json({ erro: 'produtos nao encontrado'});
   }
 
   const { nome, preco } = req.body;
+  if (nome !== undefined)produto.nome = nome;
+  if (preco !== undefined)produto.preco = preco;
 
-  if (nome === undefined && preco === undefined) {
-    return res.status(400).json({
-      erro: 'Informe o nome ou o preço para atualizar'
-    });
+   await salvarBanco(banco);
+   res.json(produto);
   }
 
-  if (
-    nome !== undefined &&
-    (typeof nome !== 'string' || nome.trim() === '')
-  ) {
-    return res.status(400).json({
-      erro: 'O nome deve ser um texto válido'
-    });
+  async function remover(req, res) {
+    const banco = await lerBanco();
+    const id = Number(req.params.id);
+    const indice = banco.produtos.findindex(p => p.id ===id);
+
+    if (indice === -1) {
+      return res.status(404).json({ erro: 'produtos nao encontrado'});
+    }
+
+banco.produtos.splice(indice, 1);
+await salvarBanco(banco);
+res.status(204).send();
   }
-
-  if (
-    preco !== undefined &&
-    (typeof preco !== 'number' ||
-      !Number.isFinite(preco) ||
-      preco < 0)
-  ) {
-    return res.status(400).json({
-      erro: 'O preço deve ser um número não negativo'
-    });
-  }
-
-  if (nome !== undefined) {
-    produto.nome = nome.trim();
-  }
-
-  if (preco !== undefined) {
-    produto.preco = preco;
-  }
-
-  res.json(produto);
-}
-
-// Excluir um produto
-function remover(req, res) {
-  const id = Number(req.params.id);
-  const indice = produtos.findIndex(p => p.id === id);
-
-  if (!Number.isInteger(id) || id <= 0 || indice === -1) {
-    return res.status(404).json({
-      erro: 'Produto não encontrado'
-    });
-  }
-
-  produtos.splice(indice, 1);
-
-  res.status(204).send();
-}
-
-module.exports = {
-  listar,
-  buscarPorId,
-  criar,
-  atualizar,
-  remover
-};
+    
+module.exports = { listar, buscarPorId, criar, atualizar, remover };
