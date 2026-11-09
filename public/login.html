@@ -1,0 +1,28 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Entrar - Minha Loja</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <main>
+    <h1>🛍️ Minha Loja</h1>
+
+    <form id="formulario">
+      <h2 id="titulo-form">Entrar</h2>
+      <input type="text" id="nome" placeholder="Nome" autocomplete="name" hidden>
+      <input type="email" id="email" placeholder="E-mail" autocomplete="email" required>
+      <input type="password" id="senha" placeholder="Senha" autocomplete="current-password" required>
+      <div class="botoes">
+        <button type="submit" id="botao-enviar">Entrar</button>
+        <button type="button" id="botao-alternar">Criar conta</button>
+      </div>
+      <p id="mensagem"></p>
+    </form>
+  </main>
+
+  <script src="login.js"></script>
+</body>
+</html>

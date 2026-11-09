@@ -1,11 +1,13 @@
 const BASE = 'http://localhost:3000';
 const LIMPAR_NO_FINAL = true;
 
+let token = null;
 let aprovados = 0;
 let reprovados = 0;
 
 async function pedir(metodo, caminho, dados) {
   const opcoes = { method: metodo, headers: { 'Content-Type': 'application/json' } };
+  if (token) opcoes.headers.Authorization = `Bearer ${token}`;
   if (dados) opcoes.body = JSON.stringify(dados);
 
   const resposta = await fetch(BASE + caminho, opcoes);
@@ -40,14 +42,30 @@ async function testar(descricao, statusEsperado, metodo, caminho, dados) {
     status === statusEsperado,
     corpo
   );
-  return 
-  ;
+  return corpo;
 }
 
 async function main() {
   try {
-    console.log('Testando a API de produtos...\n');
+    console.log('Testando o login...\n');
+    const usuarioTeste = { nome: 'Teste', email: 'teste@teste.com', senha: '123456' };
 
+    // Cria o usuário de teste (se já existir, tudo bem: 409)
+    await pedir('POST', '/auth/registrar', usuarioTeste);
+
+    await testar('Acessar produtos sem token', 401, 'GET', '/produtos');
+    await testar('Login com senha errada', 401, 'POST', '/auth/login', { email: usuarioTeste.email, senha: 'errada' });
+
+    const login = await testar('Login com dados corretos', 200, 'POST', '/auth/login', {
+      email: usuarioTeste.email,
+      senha: usuarioTeste.senha
+    });
+    token = login.token;
+    conferir('Login devolveu um token', typeof token === 'string' && token.length > 0, login);
+
+    await testar('Ver perfil com token', 200, 'GET', '/auth/perfil');
+
+    console.log('\nTestando a API de produtos...\n');
     const lista = await testar('Listar produtos', 200, 'GET', '/produtos');
     console.log(`   O banco tem ${lista.length} produto(s)\n`);
 
@@ -83,4 +101,4 @@ async function main() {
   }
 }
 
-main()
+main();
